@@ -1,0 +1,317 @@
+openapi: 3.0.3
+info:
+  title: Sarafa API Spec
+  description: |-
+    Welcome to the Sarafa API Documentation.
+  termsOfService: http://sarafa.io/tos/
+  contact:
+    email: info@sarafa.io
+  version: 1.0.11
+servers:
+  - url: https://dev.api.sarafa.io/api/
+  - url: https://api.sarafa.io/api
+tags:
+  - name: Profile
+    description: Profile Information
+  - name: Customer
+    description: Everything about your Customers
+  - name: Charge
+    description: Collect or Recieve Funds
+  - name: Transfer
+    description: Send Funds
+  - name: Exchange
+    description: Change Currencies
+  - name: Transactions
+    description: Transaction Details
+paths:
+  /profile:
+    get:
+      tags:
+        - Profile
+      summary: View profile information
+      description: Get your account details
+      operationId: profile
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          description: Invalid API Key
+  /customer:
+    get:
+      tags:
+        - Customer
+      summary: Get all ciustomers
+      description: Returns a list of all customers
+      operationId: customers
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'  
+        '404':
+          description: Invalid API Key
+    post:
+      tags:
+        - Customer
+      summary: Add new Customer
+      description: Create a record for a new customer
+      operationId: customerAdd
+      parameters:
+        - name: first_name
+          in: query
+          description: First Name
+          required: true
+          schema:
+            type: string
+        - name: last_name
+          in: query
+          description: Last Name
+          schema:
+            type: string
+        - name: email
+          in: query
+          description: Email Address
+          schema:
+            type: string
+        - name: phone
+          in: query
+          description: Phone Number
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'  
+        '404':
+          description: Invalid API Key
+          
+  /customer/{customerId}:
+    get:
+      tags:
+        - Customer
+      summary: Find customer by ID
+      description: Returns a single pet
+      operationId: getCustomerId
+      parameters:
+        - name: customerId
+          in: path
+          description: ID of pet to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Invalid API Key
+    patch:
+      tags:
+        - Customer
+      summary: Updates a customer record
+      description: ''
+      operationId: updatePetWithForm
+      parameters:
+        - name: customerId
+          in: path
+          description: CUstomer ID
+          required: true
+          schema:
+            type: string
+        - name: first_name
+          in: query
+          description: First Name
+          required: true
+          schema:
+            type: string
+        - name: last_name
+          in: query
+          description: Last Name
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: query
+          description: Email Address
+          required: true
+          schema:
+            type: string
+        - name: phone
+          in: query
+          required: true
+          description: Phone Number
+          schema:
+            type: string
+      responses:
+        '400':
+          description: Invalid input
+
+
+  /exchange:
+    post:
+      tags:
+        - Exchange
+      summary: Exchange between two currencies
+      description: ''
+      parameters:
+        - name: from_currency
+          in: query
+          description: USD, SSP, UGX, KES
+          required: true
+          schema:
+            type: string
+        - name: to_currency
+          in: query
+          description: USD, SSP, UGX, KES
+          required: true
+          schema:
+            type: string
+        - name: amount
+          in: query
+          description: Amount to exchange
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          description: Invalid API Key
+  
+  /transactions:
+    get:
+      tags:
+        - Transactions
+      summary: All Transactions
+      description: View all transactions ordered by most recent
+      operationId: getalltx
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          description: Invalid API Key
+  
+  /transactions/{tx_id}:
+    get:
+      tags:
+        - Transactions
+      summary: View Transaction Details
+      description: Get single transaction
+      operationId: gettx
+      parameters:
+        - name: tx_id
+          in: path
+          description: Transaction ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '404':
+          description: Invalid API Key
+components:
+  schemas:
+    Customer:
+      type: object
+      properties:
+        status:
+          type: string
+          example: 'success'
+        data: 
+          type: object
+          properties:
+            customer_id:
+              type: string
+              example: 'saflk320nlksaf'
+            first_name:
+              type: string
+              example: John
+            last_name:
+              type: string
+              example: Doe
+            email:
+              type: string
+              example: john@gmail.com
+            phone:
+              type: string
+              example: "092000000"
+    Transaction:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            amount:
+              type: integer
+              example: 3000
+            currency:
+              type: string
+              example: USD
+            fee:
+             type: integer
+             example: 30
+            is_verified:
+              type: boolean
+              example: true
+    Profile:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Sarafa Ltd
+            bio:
+              type: string
+            address:
+             type: string
+            status:
+              type: string
+              example: completed
+    
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header

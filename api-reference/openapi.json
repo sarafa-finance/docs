@@ -1,130 +1,574 @@
 {
-  "openapi": "3.0.1",
+  "openapi": "3.0.3",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
+    "title": "Sarafa API Spec",
+    "description": "Welcome to the Sarafa API Documentation.",
+    "termsOfService": "http://sarafa.io/tos/",
+    "contact": {
+      "email": "info@sarafa.io"
     },
-    "version": "1.0.0"
+    "version": "1.0.11"
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://dev.api.sarafa.io/api/"
+    },
+    {
+      "url": "https://api.sarafa.io/api"
+    },
+    {
+      "url": "http://localhost:3010/api"
     }
   ],
-  "security": [
+  "tags": [
     {
-      "bearerAuth": []
+      "name": "Profile",
+      "description": "Profile Information"
+    },
+    {
+      "name": "Customer",
+      "description": "Everything about your Customers"
+    },
+    {
+      "name": "Charge",
+      "description": "Collect or Recieve Funds"
+    },
+    {
+      "name": "Transfer",
+      "description": "Send Funds"
+    },
+    {
+      "name": "Exchange",
+      "description": "Change Currencies"
+    },
+    {
+      "name": "Transactions",
+      "description": "Transaction Details"
     }
   ],
   "paths": {
-    "/plants": {
+    "/profile": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
+        "tags": [
+          "Profile"
         ],
+        "summary": "View profile information",
+        "description": "Get your account details",
+        "operationId": "profile",
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Profile"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid API Key"
+          }
+        }
+      }
+    },
+    "/customer": {
+      "get": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Get all ciustomers",
+        "description": "Returns a list of all customers",
+        "operationId": "customers",
+        "responses": {
+          "200": {
+            "description": "successful operation",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Plant"
+                    "$ref": "#/components/schemas/Customer"
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+          "404": {
+            "description": "Invalid API Key"
           }
         }
       },
       "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Add new Customer",
+        "description": "Create a record for a new customer",
+        "operationId": "customerAdd",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
+            "name": "first_name",
+            "in": "query",
+            "description": "First Name",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
+            }
+          },
+          {
+            "name": "last_name",
+            "in": "query",
+            "description": "Last Name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Email Address",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phone",
+            "in": "query",
+            "description": "Phone Number",
+            "schema": {
+              "type": "string"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
+          "200": {
+            "description": "successful operation",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Customer"
+                  }
                 }
               }
             }
+          },
+          "404": {
+            "description": "Invalid API Key"
+          }
+        }
+      }
+    },
+    "/customer/{customerId}": {
+      "get": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Find customer by ID",
+        "description": "Returns a single pet",
+        "operationId": "getCustomerId",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "description": "ID of pet to return",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              },
+              "application/xml": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID supplied"
+          },
+          "404": {
+            "description": "Invalid API Key"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Customer"
+        ],
+        "summary": "Updates a customer record",
+        "description": "",
+        "operationId": "updatePetWithForm",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "description": "CUstomer ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "first_name",
+            "in": "query",
+            "description": "First Name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "last_name",
+            "in": "query",
+            "description": "Last Name",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "description": "Email Address",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "phone",
+            "in": "query",
+            "required": true,
+            "description": "Phone Number",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/charge": {
+      "post": {
+        "tags": [
+          "Charge"
+        ],
+        "summary": "Collection",
+        "description": "Collect funds from a customer",
+        "parameters": [
+          {
+            "name": "amount",
+            "in": "query",
+            "description": "Amount to charge",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "Currency (KES, UGX, SSP)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "refId",
+            "in": "query",
+            "description": "Your unique reference ID",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "customerId",
+            "in": "query",
+            "description": "Valid Customer ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhook",
+            "in": "query",
+            "description": "Webhook to return responses",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid API Key"
+          }
+        }
+      }
+    },
+    "/transfer": {
+      "post": {
+        "tags": [
+          "Transfer"
+        ],
+        "summary": "Send funds",
+        "description": "Send funds",
+        "parameters": [
+          {
+            "name": "amount",
+            "in": "query",
+            "description": "Amount to charge",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "currency",
+            "in": "query",
+            "description": "Currency (KES, UGX, SSP)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "refId",
+            "in": "query",
+            "description": "Your unique reference ID",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "destination",
+            "in": "query",
+            "description": "sarafa, mobile or bank",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "mobile_money",
+            "in": "query",
+            "description": "sarafa, mobile or bank",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "network": {
+                  "type": "string"
+                },
+                "phone_number": {
+                  "type": "string"
+                },
+                "phone_name": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          {
+            "name": "bank",
+            "in": "query",
+            "description": "sarafa, mobile or bank",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "bank_name": {
+                  "type": "string"
+                },
+                "account_name": {
+                  "type": "string"
+                },
+                "account_no": {
+                  "type": "string"
+                },
+                "comments": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          {
+            "name": "sarafa_account",
+            "in": "query",
+            "description": "sarafa, mobile or bank",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "webhook",
+            "in": "query",
+            "description": "Webhook to return responses",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid API Key"
+          }
+        }
+      }
+    },
+    "/exchange": {
+      "post": {
+        "tags": [
+          "Exchange"
+        ],
+        "summary": "Exchange between two currencies",
+        "description": "",
+        "parameters": [
+          {
+            "name": "from_currency",
+            "in": "query",
+            "description": "USD, SSP, UGX, KES",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to_currency",
+            "in": "query",
+            "description": "USD, SSP, UGX, KES",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "amount",
+            "in": "query",
+            "description": "Amount to exchange",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid API Key"
+          }
+        }
+      }
+    },
+    "/transactions": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "All Transactions",
+        "description": "View all transactions ordered by most recent",
+        "operationId": "getalltx",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid API Key"
+          }
+        }
+      }
+    },
+    "/transactions/{tx_id}": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "View Transaction Details",
+        "description": "Get single transaction",
+        "operationId": "gettx",
+        "parameters": [
+          {
+            "name": "tx_id",
+            "in": "path",
+            "description": "Transaction ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid API Key"
           }
         }
       }
@@ -132,64 +576,110 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "Customer": {
         "type": "object",
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "status": {
+            "type": "string",
+            "example": "success"
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
+          "data": {
             "type": "object",
             "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
+              "customer_id": {
+                "type": "string",
+                "example": "saflk320nlksaf"
+              },
+              "first_name": {
+                "type": "string",
+                "example": "John"
+              },
+              "last_name": {
+                "type": "string",
+                "example": "Doe"
+              },
+              "email": {
+                "type": "string",
+                "example": "john@gmail.com"
+              },
+              "phone": {
+                "type": "string",
+                "example": "092000000"
               }
             }
           }
-        ]
+        }
       },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
+      "Transaction": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
+          "status": {
+            "type": "string",
+            "example": "success"
           },
-          "message": {
-            "type": "string"
+          "data": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "integer",
+                "example": 3000
+              },
+              "currency": {
+                "type": "string",
+                "example": "USD"
+              },
+              "fee": {
+                "type": "integer",
+                "example": 30
+              },
+              "is_verified": {
+                "type": "boolean",
+                "example": true
+              }
+            }
+          }
+        }
+      },
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "example": "Sarafa Ltd"
+              },
+              "bio": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "example": "completed"
+              }
+            }
           }
         }
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "api_key"
       }
     }
-  }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ]
 }

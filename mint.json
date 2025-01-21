@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Starter Kit",
+  "name": "Sarafa Docs",
   "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
+    "dark": "/logo_white.png",
+    "light": "/logo_white.png"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/logo_white.png",
   "colors": {
-    "primary": "#0D9373",
+    "primary": "#6c20f8",
     "light": "#07C983",
     "dark": "#0D9373",
     "anchors": {
@@ -18,12 +18,12 @@
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "mailto:hi@mintlify.com"
+      "url": "mailto:info@sarafa.io"
     }
   ],
   "topbarCtaButton": {
-    "name": "Dashboard",
-    "url": "https://dashboard.mintlify.com"
+    "name": "Home",
+    "url": "https://sarafa.io"
   },
   "tabs": [
     {
@@ -35,37 +35,39 @@
     {
       "name": "Documentation",
       "icon": "book-open-cover",
-      "url": "https://mintlify.com/docs"
+      "url": "https://docs.sarafa.io/"
     },
     {
-      "name": "Community",
-      "icon": "slack",
-      "url": "https://mintlify.com/community"
+      "name": "Facebook",
+      "icon": "facebook",
+      "url": "https://facebook.com/Sarafapay"
     },
     {
-      "name": "Blog",
+      "name": "Terms of Service",
       "icon": "newspaper",
-      "url": "https://mintlify.com/blog"
+      "url": "https://sarafa.io/tos"
+    },
+    {
+      "name": "Privacy Policy",
+      "icon": "newspaper",
+      "url": "https://sarafa.io/privacy"
     }
   ],
   "navigation": [
     {
       "group": "Get Started",
       "pages": [
-        "introduction",
-        "quickstart",
-        "development"
+        "introduction"
       ]
     },
     {
-      "group": "Essentials",
+      "group": "Services",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
+        "services/api",
+        "services/agent",
+        "services/business",
+        "services/customer",
+        "services/checkout"
       ]
     },
     {
@@ -75,17 +77,23 @@
       ]
     },
     {
-      "group": "Endpoint Examples",
+      "group": "Endpoints",
       "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "api-reference/endpoint/getCustomers",
+        "api-reference/endpoint/getCustomer",
+        "api-reference/endpoint/createCustomer",
+        "api-reference/endpoint/updateCustomer",
+        "api-reference/endpoint/profile",
+        "api-reference/endpoint/transfer",
+        "api-reference/endpoint/charge",
+        "api-reference/endpoint/exchange",
+        "api-reference/endpoint/getTransactions",
+        "api-reference/endpoint/getTransaction"
       ]
     }
   ],
   "footerSocials": {
-    "x": "https://x.com/mintlify",
-    "github": "https://github.com/mintlify",
-    "linkedin": "https://linkedin.com/company/mintlify"
+    "github": "https://github.com/sarafa-finance",
+    "linkedin": "https://linkedin.com/company/sarafa"
   }
 }

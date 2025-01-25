@@ -11,19 +11,26 @@
   },
   "servers": [
     {
-      "url": "https://dev.api.sarafa.io/api/"
+      "url": "https://dev.api.sarafa.io/api",
+      "description": "Cloud Development Server"
     },
     {
-      "url": "https://api.sarafa.io/api"
+      "url": "https://api.sarafa.io/api",
+      "description": "Production Server"
     },
     {
-      "url": "http://localhost:3010/api"
+      "url": "http://127.0.0.1:3010/api",
+      "description": "Local Development Server"
     }
   ],
   "tags": [
     {
       "name": "Profile",
       "description": "Profile Information"
+    },
+    {
+      "name": "Wallet",
+      "description": "Your Wallet Balances and Account Number"
     },
     {
       "name": "Customer",
@@ -68,6 +75,31 @@
           },
           "404": {
             "description": "Invalid API Key"
+          }
+        }
+      }
+    },
+    "/wallet": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "View wallet balances and account number",
+        "description": "Account number and wallet balances",
+        "operationId": "wallet",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invalid Submission"
           }
         }
       }
@@ -133,7 +165,7 @@
             }
           },
           {
-            "name": "phone",
+            "name": "phone_number",
             "in": "query",
             "description": "Phone Number",
             "schema": {
@@ -249,7 +281,7 @@
             }
           },
           {
-            "name": "phone",
+            "name": "phone_number",
             "in": "query",
             "required": true,
             "description": "Phone Number",
@@ -663,6 +695,36 @@
               "status": {
                 "type": "string",
                 "example": "completed"
+              }
+            }
+          }
+        }
+      },
+      "Wallet": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "account_number": {
+                "type": "string",
+                "example": "9234093259023"
+              },
+              "wallets": {
+                "type": "array",
+                "properties": {
+                  "currency": {
+                    "type": "string",
+                    "example": "USD"
+                  },
+                  "balance": {
+                    "type": "number"
+                  }
+                }
               }
             }
           }

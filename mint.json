@@ -6,6 +6,12 @@
     "light": "/logo_white.png"
   },
   "favicon": "/logo_white.png",
+  "theme": "prism",
+  "layout": "topnav",
+  "modeToggle": {
+    "default": "light",
+    "isHidden": true
+  },
   "colors": {
     "primary": "#6c20f8",
     "light": "#07C983",
@@ -84,6 +90,7 @@
         "api-reference/endpoint/createCustomer",
         "api-reference/endpoint/updateCustomer",
         "api-reference/endpoint/profile",
+        "api-reference/endpoint/wallet",
         "api-reference/endpoint/transfer",
         "api-reference/endpoint/charge",
         "api-reference/endpoint/exchange",

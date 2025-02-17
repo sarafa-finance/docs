@@ -11,7 +11,7 @@
   },
   "servers": [
     {
-      "url": "https://dev.api.sarafa.io/api",
+      "url": "https://api-dev-9zi6z.ondigitalocean.app/api",
       "description": "Cloud Development Server"
     },
     {
@@ -317,7 +317,7 @@
           {
             "name": "currency",
             "in": "query",
-            "description": "Currency (KES, UGX, SSP)",
+            "description": "Currency (SSP)",
             "required": true,
             "schema": {
               "type": "string"
@@ -388,7 +388,7 @@
           {
             "name": "currency",
             "in": "query",
-            "description": "Currency (KES, UGX, SSP)",
+            "description": "Currency (KES, UGX, SSP, USD)",
             "required": true,
             "schema": {
               "type": "string"

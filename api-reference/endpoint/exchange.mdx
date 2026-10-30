@@ -1,5 +1,38 @@
 ---
-title: 'Exchange'
-openapi: 'POST /exchange'
+title: "Swap wallet balances"
+description: "Convert between USD and USDC or USDT within your account."
+openapi: "/api-reference/openapi.json POST /swap"
 ---
 
+Supported pairs are USD to/from USDC and USD to/from USDT. Conversion is 1:1 with 3% deducted from proceeds. This converts wallet balances; it does not send funds on a blockchain. Direct USDC-to-USDT swaps are not supported.
+
+```json
+{
+  "amount": "100",
+  "from_currency": "USD",
+  "to_currency": "USDC",
+  "reference": "swap-100",
+  "callback_url": "https://merchant.example/payments",
+  "quote": true
+}
+```
+
+Quote response:
+
+```json
+{
+  "status": "success",
+  "quote": {
+    "source_currency": "USD",
+    "destination_currency": "USDC",
+    "amount": "100",
+    "exchange_rate": "1",
+    "amount_received": "97",
+    "total_fees": "3",
+    "total_debit": "100",
+    "pricing": "temporary_fixed"
+  }
+}
+```
+
+Execute with `"quote": false`. A successful swap returns HTTP `200` with a completed transaction and its quote. Both wallets must be active and the source wallet must have sufficient balance.

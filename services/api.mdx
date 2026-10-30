@@ -1,4 +1,79 @@
 ---
-title: 'Sarafa Business API'
-description: 'Sarafa API for Integration'
+title: "Callbacks and errors"
+description: "Verify payment events, handle duplicate delivery, and retry uncertain requests."
 ---
+
+## Receive payment callbacks
+
+Your HTTPS `callback_url` receives POST events for payment state changes:
+
+| Event | Meaning |
+| --- | --- |
+| `payment.pending` | Payment is awaiting settlement or payer approval. |
+| `payment.completed` | Payment completed. |
+| `payment.failed` | Payment failed, was rejected, or the approval expired. |
+
+The body contains `event_id`, `type`, `reference`, `tx_reference`, `occurred_at`, `transaction`, and `quote`. The transaction and quote follow the [payment details response](/api-reference/endpoint/getTransaction). `reference` is your merchant reference; `tx_reference` identifies the payment attempt. Pending pricing may be an estimate; final pricing reflects the accepted result.
+
+## Verify the signature
+
+Callbacks include these headers:
+
+```http
+X-Sarafa-Key: sfb_live_<public_identifier>
+X-Sarafa-Signature: <hex-signature>
+```
+
+Select the original API secret using `X-Sarafa-Key`. Verify the signature against the **raw request body bytes**, before parsing JSON. Do not parse and serialize the body again for verification.
+
+The signing key is the binary SHA-256 digest of the original secret: only the portion after `.` in your API key. It is not the full API key or the hexadecimal hash string.
+
+```js
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+
+// originalApiSecret is the portion after "." in the API key.
+// rawBody is the unchanged request body; signatureHeader is X-Sarafa-Signature.
+const signingKey = createHash("sha256").update(originalApiSecret).digest();
+const expected = createHmac("sha256", signingKey).update(rawBody).digest();
+const supplied = Buffer.from(signatureHeader, "hex");
+
+const valid =
+  supplied.length === expected.length &&
+  timingSafeEqual(supplied, expected);
+```
+
+Reject events whose signature is invalid. Payments retain their original signing key after key rotation or revocation, so retain the matching verification secret until those callbacks are resolved.
+
+## Acknowledge and reconcile
+
+1. Verify the signature and store the event durably before acknowledging with HTTP `2xx`.
+2. Deduplicate by `event_id`; repeated delivery must not repeat fulfillment or accounting.
+3. Handle events arriving out of order. Never revert a final payment to `pending`.
+4. When the outcome is uncertain, [read the transaction](/api-reference/endpoint/getTransaction) using `tx_reference`, or [read the checkout](/services/checkout#check-checkout-status) using your merchant reference.
+
+A browser redirect or provider acceptance is not proof of payment.
+
+## Errors and retries
+
+| HTTP status | Meaning |
+| --- | --- |
+| `400` | Invalid JSON, fields, amount, precision, or currency/channel combination |
+| `401` | Missing, invalid, inactive, or revoked API key |
+| `403` | Required verification or authorization missing |
+| `404` | Resource not found within your organization |
+| `409` | Conflicting reference, insufficient balance, changed quote, or payment-state conflict |
+| `500` / `503` | Processing or service failure |
+
+Example error response:
+
+```json
+{
+  "status": "failed",
+  "error": "Insufficient wallet balance",
+  "request_id": "<request-id>"
+}
+```
+
+Validation errors may also contain an `issues` array with `path` and `message`. The response header `X-Request-Id` identifies the request even when the body does not include `request_id`. Include it when contacting support.
+
+After a timeout or uncertain response, retry with the same merchant reference and unchanged payload, including any originally supplied `quote_token`. Use transaction reads or verified callbacks to establish the outcome before starting a replacement payment.

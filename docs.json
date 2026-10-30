@@ -1,0 +1,102 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Sarafa Business API",
+  "colors": {
+    "primary": "#6c20f8",
+    "light": "#07C983",
+    "dark": "#0D9373"
+  },
+  "favicon": "/logo_white.png",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "introduction",
+              "api-reference/introduction",
+              "services/api"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "Accounts and transactions",
+            "pages": [
+              "api-reference/endpoint/profile",
+              "api-reference/endpoint/wallet",
+              "api-reference/endpoint/getTransactions",
+              "api-reference/endpoint/getTransaction"
+            ]
+          },
+          {
+            "group": "Payments",
+            "pages": [
+              "api-reference/endpoint/charge",
+              "api-reference/endpoint/transfer",
+              "api-reference/endpoint/exchange",
+              "services/checkout"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Documentation",
+          "href": "https://docs.sarafa.io/",
+          "icon": "book-open-cover"
+        },
+        {
+          "anchor": "Facebook",
+          "href": "https://facebook.com/Sarafapay",
+          "icon": "facebook"
+        },
+        {
+          "anchor": "Terms of Service",
+          "href": "https://sarafa.io/tos",
+          "icon": "newspaper"
+        },
+        {
+          "anchor": "Privacy Policy",
+          "href": "https://sarafa.io/privacy",
+          "icon": "newspaper"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo_white.png",
+    "dark": "/logo_white.png"
+  },
+  "appearance": {
+    "default": "light",
+    "strict": true
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:info@sarafa.io"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Home",
+      "href": "https://sarafa.io"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/sarafa-finance",
+      "linkedin": "https://linkedin.com/company/sarafa"
+    }
+  }
+}

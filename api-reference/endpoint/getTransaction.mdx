@@ -1,5 +1,18 @@
 ---
-title: 'Get Transaction'
-openapi: 'GET /transaction/{tx_id}'
+title: "Payment details"
+description: "Read a payment's current status and pricing."
+openapi: "/api-reference/openapi.json GET /transactions/{id}"
 ---
 
+Use the Sarafa `tx_reference` as `id`, for example `TX7A2B9C4D1E0`. This is different from your merchant `reference` and is not a database ID. The payment must belong to your organization's account.
+
+The response includes `transaction` and `quote`. A quote can be `null` for records without payment pricing. Transaction details include `exchange_details`, and approval requests also include `expires_at` and `reason`.
+
+| Transaction status | Meaning |
+| --- | --- |
+| `pending` | Awaiting payer approval or settlement. |
+| `needs_review` | Outcome requires reconciliation; payment is not confirmed. |
+| `completed` | Payment completed. |
+| `failed` | Payment failed, was rejected, or approval expired. |
+
+The top-level `status: "success"` only confirms the read succeeded. Check `transaction.status` before fulfilling an order. For hosted payment links, you can also [read the checkout using your merchant reference](/services/checkout#check-checkout-status).

@@ -1,5 +1,46 @@
 ---
-title: 'Transfer'
-openapi: 'POST /transfer'
+title: "Send a payment"
+description: "Send USD or SSP to a Sarafa customer, or pay out USD to mobile money."
+openapi: "/api-reference/openapi.json POST /transfer"
 ---
 
+## Sarafa transfers
+
+Send USD or SSP to an active Sarafa customer account in the same currency, with no additional Sarafa fee:
+
+```json
+{
+  "amount": "25",
+  "currency": "USD",
+  "channel": "sarafa",
+  "account_number": "602600000002",
+  "reference": "payout-100",
+  "callback_url": "https://merchant.example/payments",
+  "quote": false
+}
+```
+
+Successful internal transfers return HTTP `200` with `transaction.status: "completed"` and the transaction/quote response structure shown in [payment details](/api-reference/endpoint/getTransaction).
+
+## Mobile payouts
+
+Specify a USD principal and a KES or UGX destination. KES uses `MPESA`; UGX uses `MTN` or `AIRTEL` and requires the recipient's `name`.
+
+```json
+{
+  "amount": "10",
+  "currency": "USD",
+  "destination_currency": "UGX",
+  "channel": "mobile",
+  "account_number": "256772123456",
+  "network": "MTN",
+  "name": "Recipient Name",
+  "reference": "payout-101",
+  "callback_url": "https://merchant.example/payments",
+  "quote": true
+}
+```
+
+Review `amount_received`, `total_fees`, and `total_debit` in the quote before executing with `"quote": false`. Your USD wallet debit is the principal **plus** quoted fees. The amount is not an all-inclusive budget.
+
+You may include the returned `quote_token` when executing to detect a changed estimate. Preserve it on later retries. Mobile payments generally return HTTP `202` while pending. Confirm completion through [signed callbacks](/services/api) or [payment details](/api-reference/endpoint/getTransaction).

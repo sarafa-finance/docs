@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Sarafa Docs",
+  "name": "Sarafa Business API",
   "logo": {
     "dark": "/logo_white.png",
     "light": "/logo_white.png"
@@ -31,12 +31,6 @@
     "name": "Home",
     "url": "https://sarafa.io"
   },
-  "tabs": [
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    }
-  ],
   "anchors": [
     {
       "name": "Documentation",
@@ -61,41 +55,29 @@
   ],
   "navigation": [
     {
-      "group": "Get Started",
+      "group": "Get started",
       "pages": [
-        "introduction"
+        "introduction",
+        "api-reference/introduction",
+        "services/api"
       ]
     },
     {
-      "group": "Services",
+      "group": "Accounts and transactions",
       "pages": [
-        "services/api",
-        "services/agent",
-        "services/business",
-        "services/customer",
-        "services/checkout"
-      ]
-    },
-    {
-      "group": "API Documentation",
-      "pages": [
-        "api-reference/introduction"
-      ]
-    },
-    {
-      "group": "Endpoints",
-      "pages": [
-        "api-reference/endpoint/getCustomers",
-        "api-reference/endpoint/getCustomer",
-        "api-reference/endpoint/createCustomer",
-        "api-reference/endpoint/updateCustomer",
         "api-reference/endpoint/profile",
         "api-reference/endpoint/wallet",
-        "api-reference/endpoint/transfer",
-        "api-reference/endpoint/charge",
-        "api-reference/endpoint/exchange",
         "api-reference/endpoint/getTransactions",
         "api-reference/endpoint/getTransaction"
+      ]
+    },
+    {
+      "group": "Payments",
+      "pages": [
+        "api-reference/endpoint/charge",
+        "api-reference/endpoint/transfer",
+        "api-reference/endpoint/exchange",
+        "services/checkout"
       ]
     }
   ],

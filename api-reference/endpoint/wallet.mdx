@@ -1,5 +1,35 @@
 ---
-title: 'Wallet'
-openapi: 'GET /wallet'
+title: "Wallets"
+description: "Read wallet balances and available deposit addresses."
+openapi: "/api-reference/openapi.json GET /wallets"
 ---
 
+Returns all wallets belonging to your organization's account. Balances are decimal strings. This endpoint does not use pagination.
+
+## Read one wallet
+
+Use `GET /v3/wallets/{currency}` to read a wallet and its available deposit addresses. Replace `{currency}` with a currency code, such as `USD`, `USDC`, or `USDT`.
+
+```bash
+curl "https://api.sarafa.site/v3/wallets/USD" \
+  -H "Authorization: Bearer $SARAFA_API_KEY"
+```
+
+Example response for a USD wallet:
+
+```json
+{
+  "status": "success",
+  "wallet": {
+    "currency": "USD",
+    "kind": "fiat",
+    "available_balance": "250",
+    "status": "active",
+    "deposit_addresses": []
+  }
+}
+```
+
+For supported stablecoin wallets, each deposit address entry contains `network`, `status`, and `address`. The address is `null` when its assignment is unverified or monitoring is not active. Reading a wallet does not provision an address. A wallet absent from your account returns HTTP `404`.
+
+See [transaction history](/api-reference/endpoint/getTransactions) to read activity for one wallet.

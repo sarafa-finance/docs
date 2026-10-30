@@ -1,64 +1,41 @@
 ---
-title: Introduction
-description: "Sarafa Documentation Documentation"
+title: "Sarafa Business API"
+description: "Collect payments, send funds, convert balances, and create hosted payment links."
 ---
 
-<img
-  className=""
-  src="/logo_white.png"
-  alt="Hero Dark"
-/>
+The Sarafa Business API gives your server access to your verified organization's account. Use it to read balances and transactions, collect payments, send payouts, swap wallet balances, and create hosted checkout links.
 
+## Get started
 
-{/* 
-<CardGroup cols={2}>
-  <Card
-    title="Edit Your Docs"
-    icon="pen-to-square"
-    href="https://mintlify.com/docs/quickstart"
-  >
-    Get your docs set up locally for easy development
-  </Card>
-  <Card
-    title="Preview Changes"
-    icon="image"
-    href="https://mintlify.com/docs/development"
-  >
-    Preview your changes before you push to make sure they're perfect
-  </Card>
-</CardGroup>
+1. Complete your organization's verification in the merchant dashboard.
+2. Create an API key in the dashboard's API section. Save the full key when it is created; the secret is shown only once.
+3. Make your first authenticated request:
 
-## Make it yours
+```bash
+curl "https://api.sarafa.site/v3/" \
+  -H "Authorization: Bearer $SARAFA_API_KEY" \
+  -H "Content-Type: application/json"
+```
 
-Update your docs to your brand and add valuable content for the best user conversion.
+Keep your API key on your server. It grants access only to your organization's account.
 
-<CardGroup cols={2}>
-  <Card
-    title="Customize Style"
-    icon="palette"
-    href="https://mintlify.com/docs/settings/global"
-  >
-    Customize your docs to your company's colors and brands
-  </Card>
-  <Card
-    title="Reference APIs"
-    icon="code"
-    href="https://mintlify.com/docs/api-playground/openapi"
-  >
-    Automatically generate endpoints from an OpenAPI spec
-  </Card>
-  <Card
-    title="Add Components"
-    icon="screwdriver-wrench"
-    href="https://mintlify.com/docs/content/components/accordions"
-  >
-    Build interactive features and designs to guide your users
-  </Card>
-  <Card
-    title="Get Inspiration"
-    icon="stars"
-    href="https://mintlify.com/customers"
-  >
-    Check out our showcase of our favorite documentation
-  </Card>
-</CardGroup> */}
+## Choose an operation
+
+| Task | Endpoint | Guide |
+| --- | --- | --- |
+| Read your organization and account | `GET /v3/` | [Profile](/api-reference/endpoint/profile) |
+| Read wallet balances and deposit addresses | `GET /v3/wallets` and `GET /v3/wallets/{currency}` | [Wallets](/api-reference/endpoint/wallet) |
+| Read transaction history | `GET /v3/transactions` | [Transactions](/api-reference/endpoint/getTransactions) |
+| Check payment status | `GET /v3/transactions/{id}` | [Payment details](/api-reference/endpoint/getTransaction) |
+| Collect a payment | `POST /v3/charge` | [Charge](/api-reference/endpoint/charge) |
+| Send a payment | `POST /v3/transfer` | [Transfer](/api-reference/endpoint/transfer) |
+| Convert wallet balances | `POST /v3/swap` | [Swap](/api-reference/endpoint/exchange) |
+| Create or check a hosted payment link | `POST /v3/checkout` and `GET /v3/checkout/{reference}` | [Hosted checkout](/services/checkout) |
+
+Read [authentication and request conventions](/api-reference/introduction) before integrating, then implement [signed callbacks and retries](/services/api).
+
+<Note>
+  Charge, transfer, and swap default to a quote. Set `quote` to `false` to execute.
+  A response with `status: "success"` confirms the API request succeeded. Only
+  `transaction.status: "completed"` confirms payment.
+</Note>

@@ -1,5 +1,25 @@
 ---
-title: 'Get Transactions'
-openapi: 'GET /transactions'
+title: "Transaction history"
+description: "Read your organization's transactions, newest first."
+openapi: "/api-reference/openapi.json GET /transactions"
 ---
 
+Use `limit` and `offset` to paginate. The default limit is 50, the maximum is 100, and the default offset is 0. The response contains `transactions`, `limit`, and `offset`.
+
+```bash
+curl "https://api.sarafa.site/v3/transactions?limit=50&offset=0" \
+  -H "Authorization: Bearer $SARAFA_API_KEY"
+```
+
+## Read one wallet's history
+
+Use `GET /v3/wallets/{currency}/transactions` with the same query parameters and response shape:
+
+```bash
+curl "https://api.sarafa.site/v3/wallets/USD/transactions?limit=50&offset=0" \
+  -H "Authorization: Bearer $SARAFA_API_KEY"
+```
+
+The wallet must belong to your organization's account; an unknown wallet returns HTTP `404`.
+
+The transaction's `reference` is your merchant reference, or `null` for records without an API reference. Use `tx_reference` to [read payment details](/api-reference/endpoint/getTransaction), including its quote, exchange details, and approval expiry where applicable.

@@ -1,32 +1,27 @@
-# Mintlify Starter Kit
+# Sarafa Business API documentation
 
-Click on `Use this template` to copy the Mintlify starter kit. The starter kit contains examples including
+Merchant integration documentation for `https://api.sarafa.site/v3`, built with Mintlify.
 
-- Guide pages
-- Navigation
-- Customizations
-- API Reference pages
-- Use of popular components
+- `docs.json` defines site navigation and appearance. `mint.json` retains matching navigation for legacy tooling.
+- `api-reference/openapi.json` is the API specification. Endpoint pages explicitly reference this file.
+- `api-reference/introduction.mdx` covers authentication and request conventions.
+- `services/api.mdx` covers callback verification, errors, and retries.
+- `services/checkout.mdx` covers hosted checkout creation and status reads.
 
-### Development
+## Preview and validate
 
-Install the [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the documentation changes locally. To install, use the following command
+Use the [Mintlify CLI](https://www.mintlify.com/docs/cli/install) from this directory:
 
-```
-npm i -g mintlify
-```
-
-Run the following command at the root of your documentation (where mint.json is)
-
-```
-mintlify dev
+```sh
+npm install -g mint
+mint dev
 ```
 
-### Publishing Changes
+Before publishing:
 
-Install our Github App to auto propagate changes from your repo to your deployment. Changes will be deployed to production automatically after pushing to the default branch. Find the link to install on your dashboard. 
+```sh
+mint validate
+mint broken-links
+```
 
-#### Troubleshooting
-
-- Mintlify dev isn't running - Run `mintlify install` it'll re-install dependencies.
-- Page loads as a 404 - Make sure you are running in a folder with `mint.json`
+Keep endpoint paths, request fields, examples, and callback signing aligned with the Sarafa Business API implementation in `sarafa/sarafabusiness/main/api` and its shared payment handlers. No credentials belong in these docs.

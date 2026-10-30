@@ -1,545 +1,283 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "Sarafa API Spec",
-    "description": "Welcome to the Sarafa API Documentation.",
-    "termsOfService": "http://sarafa.io/tos/",
-    "contact": {
-      "email": "info@sarafa.io"
-    },
-    "version": "1.0.11"
+    "title": "Sarafa Business API",
+    "version": "3.0.0",
+    "description": "Server-side access to your verified organization's account. Use Bearer API keys, decimal-string amounts, and unique merchant references. Charge, transfer, and swap default to quotes. Only transaction.status = completed confirms payment."
   },
   "servers": [
     {
-      "url": "https://api-dev-9zi6z.ondigitalocean.app/api",
-      "description": "Cloud Development Server"
-    },
+      "url": "https://api.sarafa.site/v3",
+      "description": "Production"
+    }
+  ],
+  "security": [
     {
-      "url": "https://api.sarafa.io/api",
-      "description": "Production Server"
-    },
-    {
-      "url": "http://127.0.0.1:3010/api",
-      "description": "Local Development Server"
+      "bearerAuth": []
     }
   ],
   "tags": [
     {
-      "name": "Profile",
-      "description": "Profile Information"
+      "name": "Accounts"
     },
     {
-      "name": "Wallet",
-      "description": "Your Wallet Balances and Account Number"
+      "name": "Transactions"
     },
     {
-      "name": "Customer",
-      "description": "Everything about your Customers"
+      "name": "Payments"
     },
     {
-      "name": "Charge",
-      "description": "Collect or Recieve Funds"
-    },
-    {
-      "name": "Transfer",
-      "description": "Send Funds"
-    },
-    {
-      "name": "Exchange",
-      "description": "Change Currencies"
-    },
-    {
-      "name": "Transactions",
-      "description": "Transaction Details"
+      "name": "Checkout"
     }
   ],
   "paths": {
-    "/profile": {
+    "/": {
       "get": {
         "tags": [
-          "Profile"
+          "Accounts"
         ],
-        "summary": "View profile information",
-        "description": "Get your account details",
-        "operationId": "profile",
+        "summary": "Organization and account",
+        "operationId": "getProfile",
         "responses": {
           "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Profile"
-                }
+            "description": "Organization and account associated with your API key.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
-            }
-          },
-          "404": {
-            "description": "Invalid API Key"
-          }
-        }
-      }
-    },
-    "/wallet": {
-      "get": {
-        "tags": [
-          "Wallet"
-        ],
-        "summary": "View wallet balances and account number",
-        "description": "Account number and wallet balances",
-        "operationId": "wallet",
-        "responses": {
-          "200": {
-            "description": "Successful operation",
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Wallet"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Invalid Submission"
-          }
-        }
-      }
-    },
-    "/customer": {
-      "get": {
-        "tags": [
-          "Customer"
-        ],
-        "summary": "Get all ciustomers",
-        "description": "Returns a list of all customers",
-        "operationId": "customers",
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Customer"
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "organization",
+                    "account"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "organization": {
+                      "type": "object",
+                      "required": [
+                        "name",
+                        "logo_url",
+                        "is_kyc_verified"
+                      ],
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "logo_url": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "is_kyc_verified": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "account": {
+                      "type": "object",
+                      "required": [
+                        "account_number",
+                        "base_currency"
+                      ],
+                      "properties": {
+                        "account_number": {
+                          "type": "string"
+                        },
+                        "base_currency": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "organization": {
+                    "name": "Example Store",
+                    "logo_url": null,
+                    "is_kyc_verified": true
+                  },
+                  "account": {
+                    "account_number": "602600000001",
+                    "base_currency": "USD"
                   }
                 }
               }
             }
           },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
           "404": {
-            "description": "Invalid API Key"
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
           }
         }
-      },
-      "post": {
+      }
+    },
+    "/wallets": {
+      "get": {
         "tags": [
-          "Customer"
+          "Accounts"
         ],
-        "summary": "Add new Customer",
-        "description": "Create a record for a new customer",
-        "operationId": "customerAdd",
+        "summary": "List wallets",
+        "operationId": "listWallets",
+        "description": "All wallets for your organization. No pagination.",
+        "responses": {
+          "200": {
+            "description": "Wallet balances.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "wallets"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "wallets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Wallet"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "wallets": [
+                    {
+                      "currency": "USD",
+                      "kind": "fiat",
+                      "available_balance": "250",
+                      "status": "active"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/wallets/{currency}": {
+      "get": {
+        "tags": [
+          "Accounts"
+        ],
+        "summary": "Read a wallet",
+        "operationId": "getWallet",
+        "description": "Read a wallet and available deposit addresses. Does not provision addresses.",
         "parameters": [
           {
-            "name": "first_name",
-            "in": "query",
-            "description": "First Name",
+            "name": "currency",
+            "in": "path",
             "required": true,
+            "description": "Currency of a wallet belonging to your account.",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "last_name",
-            "in": "query",
-            "description": "Last Name",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "email",
-            "in": "query",
-            "description": "Email Address",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "phone_number",
-            "in": "query",
-            "description": "Phone Number",
-            "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "USD"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "successful operation",
+            "description": "Wallet and existing deposit addresses.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Customer"
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "wallet"
+                  ],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "success"
+                      ]
+                    },
+                    "wallet": {
+                      "$ref": "#/components/schemas/WalletDetails"
+                    }
+                  }
+                },
+                "example": {
+                  "status": "success",
+                  "wallet": {
+                    "currency": "USD",
+                    "kind": "fiat",
+                    "available_balance": "250",
+                    "status": "active",
+                    "deposit_addresses": []
                   }
                 }
               }
             }
           },
-          "404": {
-            "description": "Invalid API Key"
-          }
-        }
-      }
-    },
-    "/customer/{customerId}": {
-      "get": {
-        "tags": [
-          "Customer"
-        ],
-        "summary": "Find customer by ID",
-        "description": "Returns a single pet",
-        "operationId": "getCustomerId",
-        "parameters": [
-          {
-            "name": "customerId",
-            "in": "path",
-            "description": "ID of pet to return",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Customer"
-                }
-              },
-              "application/xml": {
-                "schema": {
-                  "$ref": "#/components/schemas/Customer"
-                }
-              }
-            }
+          "401": {
+            "$ref": "#/components/responses/Error401"
           },
-          "400": {
-            "description": "Invalid ID supplied"
+          "403": {
+            "$ref": "#/components/responses/Error403"
           },
           "404": {
-            "description": "Invalid API Key"
-          }
-        }
-      },
-      "patch": {
-        "tags": [
-          "Customer"
-        ],
-        "summary": "Updates a customer record",
-        "description": "",
-        "operationId": "updatePetWithForm",
-        "parameters": [
-          {
-            "name": "customerId",
-            "in": "path",
-            "description": "CUstomer ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+            "$ref": "#/components/responses/Error404"
           },
-          {
-            "name": "first_name",
-            "in": "query",
-            "description": "First Name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
+          "500": {
+            "$ref": "#/components/responses/Error500"
           },
-          {
-            "name": "last_name",
-            "in": "query",
-            "description": "Last Name",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "email",
-            "in": "query",
-            "description": "Email Address",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "phone_number",
-            "in": "query",
-            "required": true,
-            "description": "Phone Number",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "400": {
-            "description": "Invalid input"
-          }
-        }
-      }
-    },
-    "/charge": {
-      "post": {
-        "tags": [
-          "Charge"
-        ],
-        "summary": "Collection",
-        "description": "Collect funds from a customer",
-        "parameters": [
-          {
-            "name": "amount",
-            "in": "query",
-            "description": "Amount to charge",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "currency",
-            "in": "query",
-            "description": "Currency (SSP)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "refId",
-            "in": "query",
-            "description": "Your unique reference ID",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "customerId",
-            "in": "query",
-            "description": "Valid Customer ID",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "webhook",
-            "in": "query",
-            "description": "Webhook to return responses",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Transaction"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Invalid API Key"
-          }
-        }
-      }
-    },
-    "/transfer": {
-      "post": {
-        "tags": [
-          "Transfer"
-        ],
-        "summary": "Send funds",
-        "description": "Send funds",
-        "parameters": [
-          {
-            "name": "amount",
-            "in": "query",
-            "description": "Amount to charge",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "currency",
-            "in": "query",
-            "description": "Currency (KES, UGX, SSP, USD)",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "refId",
-            "in": "query",
-            "description": "Your unique reference ID",
-            "required": true,
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "destination",
-            "in": "query",
-            "description": "sarafa, mobile or bank",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "mobile_money",
-            "in": "query",
-            "description": "sarafa, mobile or bank",
-            "required": false,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "network": {
-                  "type": "string"
-                },
-                "phone_number": {
-                  "type": "string"
-                },
-                "phone_name": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          {
-            "name": "bank",
-            "in": "query",
-            "description": "sarafa, mobile or bank",
-            "required": false,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "bank_name": {
-                  "type": "string"
-                },
-                "account_name": {
-                  "type": "string"
-                },
-                "account_no": {
-                  "type": "string"
-                },
-                "comments": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          {
-            "name": "sarafa_account",
-            "in": "query",
-            "description": "sarafa, mobile or bank",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "webhook",
-            "in": "query",
-            "description": "Webhook to return responses",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Transaction"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Invalid API Key"
-          }
-        }
-      }
-    },
-    "/exchange": {
-      "post": {
-        "tags": [
-          "Exchange"
-        ],
-        "summary": "Exchange between two currencies",
-        "description": "",
-        "parameters": [
-          {
-            "name": "from_currency",
-            "in": "query",
-            "description": "USD, SSP, UGX, KES",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "to_currency",
-            "in": "query",
-            "description": "USD, SSP, UGX, KES",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "amount",
-            "in": "query",
-            "description": "Amount to exchange",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful operation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Transaction"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Invalid API Key"
+          "503": {
+            "$ref": "#/components/responses/Error503"
           }
         }
       }
@@ -549,180 +287,377 @@
         "tags": [
           "Transactions"
         ],
-        "summary": "All Transactions",
-        "description": "View all transactions ordered by most recent",
-        "operationId": "getalltx",
+        "summary": "List transactions",
+        "operationId": "listTransactions",
+        "description": "Your organization's transactions, newest first.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Successful operation",
+            "description": "Paginated transaction history.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Transaction"
+                  "$ref": "#/components/schemas/TransactionListResponse"
                 }
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
           "404": {
-            "description": "Invalid API Key"
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
           }
         }
       }
     },
-    "/transactions/{tx_id}": {
+    "/wallets/{currency}/transactions": {
       "get": {
         "tags": [
           "Transactions"
         ],
-        "summary": "View Transaction Details",
-        "description": "Get single transaction",
-        "operationId": "gettx",
+        "summary": "List wallet transactions",
+        "operationId": "listWalletTransactions",
+        "description": "Transactions for an owned wallet, newest first.",
         "parameters": [
           {
-            "name": "tx_id",
+            "name": "currency",
             "in": "path",
-            "description": "Transaction ID",
             "required": true,
+            "description": "Currency of a wallet belonging to your account.",
             "schema": {
-              "type": "string"
+              "type": "string",
+              "example": "USD"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful operation",
+            "description": "Paginated wallet transaction history.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Transaction"
+                  "$ref": "#/components/schemas/TransactionListResponse"
                 }
               }
             }
           },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
           "404": {
-            "description": "Invalid API Key"
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
           }
         }
       }
-    }
-  },
-  "components": {
-    "schemas": {
-      "Customer": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "customer_id": {
-                "type": "string",
-                "example": "saflk320nlksaf"
-              },
-              "first_name": {
-                "type": "string",
-                "example": "John"
-              },
-              "last_name": {
-                "type": "string",
-                "example": "Doe"
-              },
-              "email": {
-                "type": "string",
-                "example": "john@gmail.com"
-              },
-              "phone": {
-                "type": "string",
-                "example": "092000000"
-              }
+    },
+    "/transactions/{id}": {
+      "get": {
+        "tags": [
+          "Transactions"
+        ],
+        "summary": "Read payment details",
+        "operationId": "getTransaction",
+        "description": "Read by tx_reference. Only transaction.status = completed confirms payment.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Sarafa tx_reference, not the merchant reference or a database ID.",
+            "schema": {
+              "type": "string",
+              "example": "TX7A2B9C4D1E0"
             }
           }
-        }
-      },
-      "Transaction": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "amount": {
-                "type": "integer",
-                "example": 3000
-              },
-              "currency": {
-                "type": "string",
-                "example": "USD"
-              },
-              "fee": {
-                "type": "integer",
-                "example": 30
-              },
-              "is_verified": {
-                "type": "boolean",
-                "example": true
+        ],
+        "responses": {
+          "200": {
+            "description": "Payment status and quote. This example is awaiting approval.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
-            }
-          }
-        }
-      },
-      "Profile": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "name": {
-                "type": "string",
-                "example": "Sarafa Ltd"
-              },
-              "bio": {
-                "type": "string"
-              },
-              "address": {
-                "type": "string"
-              },
-              "status": {
-                "type": "string",
-                "example": "completed"
-              }
-            }
-          }
-        }
-      },
-      "Wallet": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "account_number": {
-                "type": "string",
-                "example": "9234093259023"
-              },
-              "wallets": {
-                "type": "array",
-                "properties": {
-                  "currency": {
-                    "type": "string",
-                    "example": "USD"
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "transaction": {
+                    "tx_reference": "TX7A2B9C4D1E0",
+                    "reference": "collection-101",
+                    "transaction_type": "credit",
+                    "product": "sarafa_charge",
+                    "description": "Payment approval request",
+                    "amount": "10",
+                    "total_amount": "10",
+                    "total_fees": "0",
+                    "currency": "USD",
+                    "channel": "Sarafa",
+                    "status": "pending",
+                    "created_at": "2026-10-30T10:00:00.000Z",
+                    "updated_at": "2026-10-30T10:00:00.000Z",
+                    "exchange_details": null,
+                    "expires_at": "2026-10-30T10:15:00.000Z",
+                    "reason": null
                   },
-                  "balance": {
-                    "type": "number"
+                  "quote": {
+                    "source_currency": "USD",
+                    "destination_currency": "USD",
+                    "amount": "10",
+                    "exchange_rate": "1",
+                    "amount_received": "10",
+                    "total_fees": "0",
+                    "total_debit": "10",
+                    "pricing": "temporary_fixed"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/charge": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Collect a payment",
+        "operationId": "charge",
+        "description": "Collect KES/UGX mobile money into USD, or request USD/SSP approval from an eligible Sarafa customer or merchant. Sarafa requests expire after 15 minutes; creation moves no funds. Quote defaults to true.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChargeRequest"
+              },
+              "examples": {
+                "mobile": {
+                  "summary": "Quote a KES mobile collection",
+                  "value": {
+                    "amount": "1300",
+                    "currency": "KES",
+                    "channel": "mobile",
+                    "account_number": "254712345678",
+                    "network": "MPESA",
+                    "reference": "collection-100",
+                    "callback_url": "https://merchant.example/payments",
+                    "quote": true
+                  }
+                },
+                "sarafa": {
+                  "summary": "Request Sarafa payer approval",
+                  "value": {
+                    "amount": "10",
+                    "currency": "USD",
+                    "channel": "sarafa",
+                    "account_number": "602600000002",
+                    "reference": "collection-101",
+                    "callback_url": "https://merchant.example/payments",
+                    "quote": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote, or resolved execution. Only transaction.status = completed confirms payment.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/QuoteResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PaymentResponse"
+                    }
+                  ]
+                },
+                "examples": {
+                  "mobileQuote": {
+                    "summary": "Illustrative mobile estimate; actual pricing is returned by the API.",
+                    "value": {
+                      "status": "success",
+                      "quote": {
+                        "source_currency": "KES",
+                        "destination_currency": "USD",
+                        "amount": "1300",
+                        "exchange_rate": "130",
+                        "amount_received": "10",
+                        "total_fees": "0",
+                        "total_debit": "1300",
+                        "pricing": "payswitch_estimate",
+                        "quote_token": "<token>"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "202": {
+            "description": "Payment pending or awaiting reconciliation. Example: Sarafa approval request.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "transaction": {
+                    "tx_reference": "TX7A2B9C4D1E0",
+                    "reference": "collection-101",
+                    "transaction_type": "credit",
+                    "product": "sarafa_charge",
+                    "description": "Payment approval request",
+                    "amount": "10",
+                    "total_amount": "10",
+                    "total_fees": "0",
+                    "currency": "USD",
+                    "channel": "Sarafa",
+                    "status": "pending",
+                    "created_at": "2026-10-30T10:00:00.000Z",
+                    "updated_at": "2026-10-30T10:00:00.000Z",
+                    "exchange_details": null,
+                    "expires_at": "2026-10-30T10:15:00.000Z",
+                    "reason": null
+                  },
+                  "quote": {
+                    "source_currency": "USD",
+                    "destination_currency": "USD",
+                    "amount": "10",
+                    "exchange_rate": "1",
+                    "amount_received": "10",
+                    "total_fees": "0",
+                    "total_debit": "10",
+                    "pricing": "temporary_fixed"
                   }
                 }
               }
@@ -731,17 +666,1633 @@
         }
       }
     },
-    "securitySchemes": {
-      "ApiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "api_key"
+    "/transfer": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Send a payment",
+        "operationId": "transfer",
+        "description": "Send USD/SSP to an active Sarafa customer, or debit USD principal plus fees for a KES/UGX mobile payout. Quote defaults to true.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferRequest"
+              },
+              "examples": {
+                "sarafa": {
+                  "summary": "Send to a Sarafa customer",
+                  "value": {
+                    "amount": "25",
+                    "currency": "USD",
+                    "channel": "sarafa",
+                    "account_number": "602600000002",
+                    "reference": "payout-100",
+                    "callback_url": "https://merchant.example/payments",
+                    "quote": false
+                  }
+                },
+                "mobile": {
+                  "summary": "Quote a USD to UGX mobile payout",
+                  "value": {
+                    "amount": "10",
+                    "currency": "USD",
+                    "destination_currency": "UGX",
+                    "channel": "mobile",
+                    "account_number": "256772123456",
+                    "network": "MTN",
+                    "name": "Recipient Name",
+                    "reference": "payout-101",
+                    "callback_url": "https://merchant.example/payments",
+                    "quote": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote, or resolved execution. Only transaction.status = completed confirms payment.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/QuoteResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PaymentResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "202": {
+            "description": "Mobile payment pending or awaiting reconciliation.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaymentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/swap": {
+      "post": {
+        "tags": [
+          "Payments"
+        ],
+        "summary": "Swap wallet balances",
+        "operationId": "swap",
+        "description": "Convert USD to/from USDC or USDT at 1:1, with 3% deducted from proceeds. This moves wallet balances, not blockchain funds. Quote defaults to true.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SwapRequest"
+              },
+              "examples": {
+                "usdToUsdc": {
+                  "summary": "Quote a USD to USDC swap",
+                  "value": {
+                    "amount": "100",
+                    "from_currency": "USD",
+                    "to_currency": "USDC",
+                    "reference": "swap-100",
+                    "callback_url": "https://merchant.example/payments",
+                    "quote": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Quote, or resolved execution. Only transaction.status = completed confirms payment.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/QuoteResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PaymentResponse"
+                    }
+                  ]
+                },
+                "example": {
+                  "status": "success",
+                  "quote": {
+                    "source_currency": "USD",
+                    "destination_currency": "USDC",
+                    "amount": "100",
+                    "exchange_rate": "1",
+                    "amount_received": "97",
+                    "total_fees": "3",
+                    "total_debit": "100",
+                    "pricing": "temporary_fixed"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/checkout": {
+      "post": {
+        "tags": [
+          "Checkout"
+        ],
+        "summary": "Create hosted checkout",
+        "operationId": "createCheckout",
+        "description": "Create a fixed-amount, single-payment USD invoice. Supports card, Sarafa, and KES/UGX mobile payments. Returns the same link on an identical retry. Does not accept quote.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutRequest"
+              },
+              "example": {
+                "amount": "25",
+                "currency": "USD",
+                "title": "Order 100",
+                "description": "Payment for your order",
+                "reference": "order-100",
+                "callback_url": "https://merchant.example/payments",
+                "redirect_url": "https://merchant.example/orders/100"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created checkout, or an identical replay.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "checkout": {
+                    "slug": "<generated-slug>",
+                    "title": "Order 100",
+                    "description": "Payment for your order",
+                    "amount": "25",
+                    "currency": "USD",
+                    "status": "open",
+                    "created_at": "2026-10-30T10:00:00.000Z",
+                    "reference": "order-100",
+                    "checkout_url": "https://checkout.sarafa.site/p/<generated-slug>",
+                    "transactions": []
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
+      }
+    },
+    "/checkout/{reference}": {
+      "get": {
+        "tags": [
+          "Checkout"
+        ],
+        "summary": "Read hosted checkout",
+        "operationId": "getCheckout",
+        "description": "Read checkout state and associated payment attempts. Browser redirects are not proof of payment.",
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "order-100"
+            },
+            "description": "Your merchant reference used at checkout creation."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Checkout status: open, paid, or closed.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "checkout": {
+                    "slug": "<generated-slug>",
+                    "title": "Order 100",
+                    "description": "Payment for your order",
+                    "amount": "25",
+                    "currency": "USD",
+                    "status": "open",
+                    "created_at": "2026-10-30T10:00:00.000Z",
+                    "reference": "order-100",
+                    "checkout_url": "https://checkout.sarafa.site/p/<generated-slug>",
+                    "transactions": []
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        }
       }
     }
   },
-  "security": [
-    {
-      "ApiKeyAuth": []
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "sfb_live_<public_identifier>.<secret>",
+        "description": "Use the full key from the merchant dashboard API section. Keep it on your server."
+      }
+    },
+    "headers": {
+      "RequestId": {
+        "description": "Include this request identifier when contacting support.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "status",
+          "error"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "failed"
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Present on processing errors. Every response also includes X-Request-Id."
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "path",
+                "message"
+              ],
+              "properties": {
+                "path": {
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "integer"
+                      }
+                    ]
+                  }
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Wallet": {
+        "type": "object",
+        "required": [
+          "currency",
+          "kind",
+          "available_balance",
+          "status"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "fiat",
+              "stablecoins"
+            ]
+          },
+          "available_balance": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive",
+              "suspended"
+            ]
+          }
+        }
+      },
+      "WalletDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Wallet"
+          },
+          {
+            "type": "object",
+            "required": [
+              "deposit_addresses"
+            ],
+            "properties": {
+              "deposit_addresses": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "network",
+                    "status",
+                    "address"
+                  ],
+                  "properties": {
+                    "network": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "address": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Null unless the assignment is verified and monitoring is active."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Quote": {
+        "type": "object",
+        "required": [
+          "source_currency",
+          "destination_currency",
+          "amount",
+          "exchange_rate",
+          "amount_received",
+          "total_fees",
+          "total_debit",
+          "pricing"
+        ],
+        "properties": {
+          "source_currency": {
+            "type": "string"
+          },
+          "destination_currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "exchange_rate": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "amount_received": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "total_fees": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "total_debit": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "pricing": {
+            "type": "string",
+            "enum": [
+              "temporary_fixed",
+              "payswitch_estimate",
+              "payswitch_accepted"
+            ]
+          },
+          "quote_token": {
+            "type": "string",
+            "description": "Optional token returned for mobile estimates. Include it on execution to detect a changed estimate, and preserve it on execution retries."
+          }
+        }
+      },
+      "NullableQuote": {
+        "type": "object",
+        "required": [
+          "source_currency",
+          "destination_currency",
+          "amount",
+          "exchange_rate",
+          "amount_received",
+          "total_fees",
+          "total_debit",
+          "pricing"
+        ],
+        "properties": {
+          "source_currency": {
+            "type": "string"
+          },
+          "destination_currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "exchange_rate": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "amount_received": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "total_fees": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "total_debit": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "pricing": {
+            "type": "string",
+            "enum": [
+              "temporary_fixed",
+              "payswitch_estimate",
+              "payswitch_accepted"
+            ]
+          },
+          "quote_token": {
+            "type": "string",
+            "description": "Optional token returned for mobile estimates. Include it on execution to detect a changed estimate, and preserve it on execution retries."
+          }
+        },
+        "nullable": true
+      },
+      "TransactionSummary": {
+        "type": "object",
+        "required": [
+          "tx_reference",
+          "transaction_type",
+          "product",
+          "description",
+          "amount",
+          "total_amount",
+          "total_fees",
+          "channel",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "properties": {
+          "tx_reference": {
+            "type": "string",
+            "description": "Sarafa payment reference. Newly generated references are 13 characters; existing longer references remain valid.",
+            "example": "TX7A2B9C4D1E0"
+          },
+          "transaction_type": {
+            "type": "string",
+            "enum": [
+              "credit",
+              "debit"
+            ]
+          },
+          "product": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "total_amount": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "total_fees": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "channel": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "Payment state. Only completed confirms payment; pending and needs_review are not final. Failed approvals can include a rejection or expiry reason.",
+            "example": "pending"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Transaction": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TransactionSummary"
+          },
+          {
+            "type": "object",
+            "required": [
+              "currency",
+              "reference"
+            ],
+            "properties": {
+              "currency": {
+                "type": "string"
+              },
+              "reference": {
+                "type": "string",
+                "nullable": true,
+                "description": "Merchant reference, or null for records without API identity."
+              }
+            }
+          }
+        ]
+      },
+      "PaymentTransaction": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Transaction"
+          },
+          {
+            "type": "object",
+            "required": [
+              "exchange_details"
+            ],
+            "properties": {
+              "exchange_details": {
+                "type": "object",
+                "required": [
+                  "from_currency",
+                  "to_currency",
+                  "rate",
+                  "total"
+                ],
+                "properties": {
+                  "from_currency": {
+                    "type": "string"
+                  },
+                  "to_currency": {
+                    "type": "string"
+                  },
+                  "rate": {
+                    "type": "string",
+                    "description": "Decimal string."
+                  },
+                  "total": {
+                    "type": "string",
+                    "description": "Decimal string."
+                  }
+                },
+                "nullable": true
+              },
+              "expires_at": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Present on approval requests; approval expires 15 minutes after creation."
+              },
+              "reason": {
+                "type": "string",
+                "nullable": true,
+                "description": "Present on approval requests; rejected or expired when applicable."
+              }
+            }
+          }
+        ]
+      },
+      "QuoteResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "quote"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success"
+            ]
+          },
+          "quote": {
+            "$ref": "#/components/schemas/Quote"
+          }
+        }
+      },
+      "PaymentResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "transaction",
+          "quote"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success"
+            ]
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/PaymentTransaction"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/NullableQuote"
+          }
+        }
+      },
+      "TransactionListResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "transactions",
+          "limit",
+          "offset"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success"
+            ]
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          }
+        }
+      },
+      "Checkout": {
+        "type": "object",
+        "required": [
+          "slug",
+          "title",
+          "description",
+          "amount",
+          "currency",
+          "status",
+          "created_at",
+          "reference",
+          "checkout_url",
+          "transactions"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string",
+            "description": "Decimal string."
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "paid",
+              "closed"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "checkout_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Redirect the payer to this URL."
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TransactionSummary"
+            },
+            "description": "Payment attempts, newest first. Read a transaction by tx_reference for its currency, quote, and approval details."
+          }
+        }
+      },
+      "CheckoutResponse": {
+        "type": "object",
+        "required": [
+          "status",
+          "checkout"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "success"
+            ]
+          },
+          "checkout": {
+            "$ref": "#/components/schemas/Checkout"
+          }
+        }
+      },
+      "PaymentEvent": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "type",
+          "reference",
+          "tx_reference",
+          "occurred_at",
+          "transaction",
+          "quote"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "description": "Stable event identifier; deduplicate deliveries by this value."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "payment.pending",
+              "payment.completed",
+              "payment.failed"
+            ]
+          },
+          "reference": {
+            "type": "string"
+          },
+          "tx_reference": {
+            "type": "string"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/PaymentTransaction"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/NullableQuote"
+          }
+        }
+      },
+      "SarafaChargeRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "reference",
+          "callback_url",
+          "channel",
+          "currency",
+          "account_number"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "Positive decimal string, not a JSON number. Zero is invalid. Currency-specific precision and payment limits also apply.",
+            "example": "100.00"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "quote": {
+            "type": "boolean",
+            "default": true,
+            "description": "True returns a quote without moving funds or creating a transaction. Set false to execute."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sarafa"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "SSP"
+            ]
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^\\d{12,13}$",
+            "description": "Eligible payer customer or merchant account.",
+            "example": "602600000002"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MobileKESChargeRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "reference",
+          "callback_url",
+          "channel",
+          "currency",
+          "account_number",
+          "network"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "KES amount with up to two decimal places.",
+            "example": "100.00"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "quote": {
+            "type": "boolean",
+            "default": true,
+            "description": "True returns a quote without moving funds or creating a transaction. Set false to execute."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "mobile"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "KES"
+            ]
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^\\+?254\\d{9}$",
+            "description": "Phone number with country prefix and 12 digits; optional leading +.",
+            "example": "254712345678"
+          },
+          "network": {
+            "type": "string",
+            "enum": [
+              "MPESA"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Payer name. Required for UGX."
+          },
+          "quote_token": {
+            "type": "string",
+            "description": "Optional mobile estimate token. A changed estimate returns 409. Preserve this value on execution retries."
+          }
+        },
+        "additionalProperties": false
+      },
+      "MobileUGXChargeRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "reference",
+          "callback_url",
+          "channel",
+          "currency",
+          "account_number",
+          "network",
+          "name"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "Whole UGX amount.",
+            "example": "100.00"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "quote": {
+            "type": "boolean",
+            "default": true,
+            "description": "True returns a quote without moving funds or creating a transaction. Set false to execute."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "mobile"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "UGX"
+            ]
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^\\+?256\\d{9}$",
+            "description": "Phone number with country prefix and 12 digits; optional leading +.",
+            "example": "256772123456"
+          },
+          "network": {
+            "type": "string",
+            "enum": [
+              "MTN",
+              "AIRTEL"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Payer name. Required for UGX."
+          },
+          "quote_token": {
+            "type": "string",
+            "description": "Optional mobile estimate token. A changed estimate returns 409. Preserve this value on execution retries."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ChargeRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SarafaChargeRequest"
+          },
+          {
+            "$ref": "#/components/schemas/MobileKESChargeRequest"
+          },
+          {
+            "$ref": "#/components/schemas/MobileUGXChargeRequest"
+          }
+        ]
+      },
+      "SarafaTransferRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "reference",
+          "callback_url",
+          "channel",
+          "currency",
+          "account_number"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "Positive decimal string, not a JSON number. Zero is invalid. Currency-specific precision and payment limits also apply.",
+            "example": "100.00"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "quote": {
+            "type": "boolean",
+            "default": true,
+            "description": "True returns a quote without moving funds or creating a transaction. Set false to execute."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "sarafa"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "SSP"
+            ]
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^\\d{12,13}$",
+            "description": "Active receiving customer account.",
+            "example": "602600000002"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MobileKESTransferRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "reference",
+          "callback_url",
+          "channel",
+          "currency",
+          "account_number",
+          "network",
+          "destination_currency"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "USD principal with up to two decimal places. Wallet debit is principal plus fees, not an all-inclusive budget.",
+            "example": "100.00"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "quote": {
+            "type": "boolean",
+            "default": true,
+            "description": "True returns a quote without moving funds or creating a transaction. Set false to execute."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "mobile"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^\\+?254\\d{9}$",
+            "description": "Phone number with country prefix and 12 digits; optional leading +.",
+            "example": "254712345678"
+          },
+          "network": {
+            "type": "string",
+            "enum": [
+              "MPESA"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Recipient name. Required for UGX."
+          },
+          "quote_token": {
+            "type": "string",
+            "description": "Optional mobile estimate token. A changed estimate returns 409. Preserve this value on execution retries."
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "KES"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "MobileUGXTransferRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "reference",
+          "callback_url",
+          "channel",
+          "currency",
+          "account_number",
+          "network",
+          "name",
+          "destination_currency"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "USD principal with up to two decimal places. Wallet debit is principal plus fees, not an all-inclusive budget.",
+            "example": "100.00"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "quote": {
+            "type": "boolean",
+            "default": true,
+            "description": "True returns a quote without moving funds or creating a transaction. Set false to execute."
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "mobile"
+            ]
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          },
+          "account_number": {
+            "type": "string",
+            "pattern": "^\\+?256\\d{9}$",
+            "description": "Phone number with country prefix and 12 digits; optional leading +.",
+            "example": "256772123456"
+          },
+          "network": {
+            "type": "string",
+            "enum": [
+              "MTN",
+              "AIRTEL"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160,
+            "description": "Recipient name. Required for UGX."
+          },
+          "quote_token": {
+            "type": "string",
+            "description": "Optional mobile estimate token. A changed estimate returns 409. Preserve this value on execution retries."
+          },
+          "destination_currency": {
+            "type": "string",
+            "enum": [
+              "UGX"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "TransferRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/SarafaTransferRequest"
+          },
+          {
+            "$ref": "#/components/schemas/MobileKESTransferRequest"
+          },
+          {
+            "$ref": "#/components/schemas/MobileUGXTransferRequest"
+          }
+        ]
+      },
+      "SwapRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "reference",
+          "callback_url",
+          "from_currency",
+          "to_currency"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "Positive decimal string, not a JSON number. Zero is invalid. Currency-specific precision and payment limits also apply.",
+            "example": "100.00"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "quote": {
+            "type": "boolean",
+            "default": true,
+            "description": "True returns a quote without moving funds or creating a transaction. Set false to execute."
+          },
+          "from_currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "USDC",
+              "USDT"
+            ]
+          },
+          "to_currency": {
+            "type": "string",
+            "enum": [
+              "USD",
+              "USDC",
+              "USDT"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "description": "Only USD to/from USDC or USDT. The currencies must differ. Conversion is 1:1, with 3% deducted from proceeds.",
+        "oneOf": [
+          {
+            "properties": {
+              "from_currency": {
+                "enum": [
+                  "USD"
+                ]
+              },
+              "to_currency": {
+                "enum": [
+                  "USDC",
+                  "USDT"
+                ]
+              }
+            }
+          },
+          {
+            "properties": {
+              "from_currency": {
+                "enum": [
+                  "USDC",
+                  "USDT"
+                ]
+              },
+              "to_currency": {
+                "enum": [
+                  "USD"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "CheckoutRequest": {
+        "type": "object",
+        "required": [
+          "amount",
+          "currency",
+          "title",
+          "description",
+          "reference",
+          "callback_url"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "pattern": "^[0-9]+([.][0-9]{1,18})?$",
+            "description": "Positive decimal string, not a JSON number. Zero is invalid. Currency-specific precision and payment limits also apply.",
+            "example": "100.00"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "USD"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Your idempotency reference, unique across charge, transfer, swap, and checkout creation within your organization. Reuse it with unchanged details for execution retries."
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "HTTPS URL without embedded credentials. Required even for quotes. Receives signed payment callbacks.",
+            "example": "https://merchant.example/payments"
+          },
+          "redirect_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://",
+            "description": "Optional browser return URL. Must use HTTPS without embedded credentials. Redirects are not proof of payment."
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "responses": {
+      "Error400": {
+        "description": "Invalid JSON, fields, amount, precision, or currency/channel combination.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error401": {
+        "description": "Missing, invalid, inactive, or revoked API key.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error403": {
+        "description": "Required verification or authorization missing.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error404": {
+        "description": "Resource not found within your organization.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error409": {
+        "description": "Conflicting reference, insufficient balance, changed quote, or payment-state conflict.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error500": {
+        "description": "Processing failure. Retry uncertain executions with the same reference and unchanged payload.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error503": {
+        "description": "Service failure. Retry uncertain executions with the same reference and unchanged payload.",
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
     }
-  ]
+  }
 }

@@ -1,34 +1,75 @@
 ---
-title: 'Introduction'
-description: 'API Reference for Sarafa API'
+title: "Authentication and requests"
+description: "API keys, request conventions, quotes, and idempotent execution."
 ---
 
-<Note>
-  You can find your API Keys from the Sarafa Business Dashboard.
-</Note>
+## Access and authentication
 
-## Authentication
+Complete your organization's verification, then create an API key in the merchant dashboard's API section. Save the full key immediately: the secret is shown only once.
 
-All API endpoints are authenticated using API keys.
+The production base URL is:
+
+```text
+https://api.sarafa.site/v3
+```
+
+Send these headers with your requests:
+
+```http
+Authorization: Bearer sfb_live_<public_identifier>.<secret>
+Content-Type: application/json
+```
+
+The public identifier is 16 hexadecimal characters; the secret is 64 hexadecimal characters. Keep the full key on your server. Each key grants access only to its organization's account. Customer session tokens cannot authenticate this API.
+
+```bash
+curl "https://api.sarafa.site/v3/" \
+  -H "Authorization: Bearer $SARAFA_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+Example response:
 
 ```json
-"headers":
-  {
-    "api_key": ""
+{
+  "status": "success",
+  "organization": {
+    "name": "Example Store",
+    "logo_url": null,
+    "is_kyc_verified": true
+  },
+  "account": {
+    "account_number": "602600000001",
+    "base_currency": "USD"
   }
-```
-## Base URL
-
-All API endpoints are hosted on the following base URL:
-For Development:
-```
-https://dev.api.sarafa.io/api/
-```
-For Production:
-```
-https://api.sarafa.io/api/
+}
 ```
 
-## Rate Limiting
-All API requests are limited to 5 Requests per second. If your application requires more,
-please email us at info@sarafa.io 
+## Request conventions
+
+- Send amounts as positive decimal strings, such as `"100.00"`, rather than JSON numbers.
+- Mobile collections accept KES with up to two decimal places or whole UGX. Mobile payout USD principal accepts up to two decimal places. Sarafa payments and swaps support up to 18 decimal places.
+- Include your own `reference` and an HTTPS `callback_url` for charge, transfer, swap, and checkout creation, including quote requests. Callback URLs must not contain embedded credentials.
+- Charge, transfer, and swap default to `"quote": true`. Quotes move no funds and create no transaction or callback. Send `"quote": false` to execute.
+- Mobile quotes may return a `quote_token`. Include it when executing to detect a changed estimate, which returns HTTP `409`. A quote is an estimate; use the execution result and final payment status for settlement.
+- References must be 1–128 characters and unique across charge, transfer, swap, and checkout creation within your organization.
+
+## Retry without duplicating a payment
+
+Your `reference` is the idempotency key; no separate `Idempotency-Key` header is needed.
+
+After a timeout or uncertain response, retry execution with the same reference and unchanged payload. The API returns the existing payment or checkout. Changing the operation, amount, recipient, callback URL, or other request details returns HTTP `409`. Preserve any `quote_token` supplied on the original execution.
+
+Your merchant `reference` and Sarafa's `tx_reference` are different. Generated payment references are 13 characters, such as `TX7A2B9C4D1E0`. Use `tx_reference` to [read a payment](/api-reference/endpoint/getTransaction), and your merchant reference to [read a checkout](/services/checkout#check-checkout-status).
+
+## Interpret responses
+
+The top-level `status: "success"` means the API request succeeded. Only `transaction.status: "completed"` confirms payment. Pending payments, including those marked `needs_review`, still need a final outcome.
+
+| HTTP status | Meaning |
+| --- | --- |
+| `200` | Successful read, quote, or resolved operation |
+| `201` | Hosted checkout created or returned on an identical retry |
+| `202` | Payment pending or awaiting reconciliation |
+
+Use [signed callbacks and authenticated status reads](/services/api) to establish payment outcomes. See the same guide for error codes and retry handling.

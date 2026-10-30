@@ -1,5 +1,63 @@
 ---
-title: 'Charge'
-openapi: 'POST /charge'
+title: "Collect a payment"
+description: "Collect mobile money or request approval from a Sarafa account."
+openapi: "/api-reference/openapi.json POST /charge"
 ---
 
+## Mobile collections
+
+Collect KES or UGX into your USD wallet. Use `MPESA` for KES, or `MTN`/`AIRTEL` for UGX. UGX requires the payer's `name`. Supply the payer's phone number with country prefix and 12 digits; an optional leading `+` is accepted.
+
+```json
+{
+  "amount": "1300",
+  "currency": "KES",
+  "channel": "mobile",
+  "account_number": "254712345678",
+  "network": "MPESA",
+  "reference": "collection-100",
+  "callback_url": "https://merchant.example/payments",
+  "quote": true
+}
+```
+
+Illustrative quote; actual pricing is returned by the API:
+
+```json
+{
+  "status": "success",
+  "quote": {
+    "source_currency": "KES",
+    "destination_currency": "USD",
+    "amount": "1300",
+    "exchange_rate": "130",
+    "amount_received": "10",
+    "total_fees": "0",
+    "total_debit": "1300",
+    "pricing": "payswitch_estimate",
+    "quote_token": "<token>"
+  }
+}
+```
+
+Submit again with `"quote": false` to collect. You may include the returned `quote_token`; a changed estimate then returns HTTP `409`. Provider acceptance remains pending until settlement. HTTP `202` means the payment is pending or awaiting reconciliation.
+
+## Sarafa approval requests
+
+Request payment in USD or SSP from an eligible Sarafa customer or merchant account:
+
+```json
+{
+  "amount": "10",
+  "currency": "USD",
+  "channel": "sarafa",
+  "account_number": "602600000002",
+  "reference": "collection-101",
+  "callback_url": "https://merchant.example/payments",
+  "quote": false
+}
+```
+
+The payer must approve within 15 minutes. Creating the request moves no funds. Rejection or expiry fails the payment, with `reason` set to `rejected` or `expired`. Sarafa charges have no additional fee.
+
+Read [payment details](/api-reference/endpoint/getTransaction) or process [signed callbacks](/services/api) to confirm the outcome. Preserve the reference and original execution payload when retrying.
